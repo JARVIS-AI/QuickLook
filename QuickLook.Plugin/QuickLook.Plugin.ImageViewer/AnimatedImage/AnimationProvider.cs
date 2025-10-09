@@ -1,46 +1,42 @@
-﻿// Copyright © 2017 Paddy Xu
-// 
+﻿// Copyright © 2017-2025 QL-Win Contributors
+//
 // This file is part of QuickLook program.
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+using QuickLook.Common.Plugin;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 
-namespace QuickLook.Plugin.ImageViewer.AnimatedImage
+namespace QuickLook.Plugin.ImageViewer.AnimatedImage;
+
+internal abstract class AnimationProvider(Uri path, MetaProvider meta, ContextObject contextObject) : IDisposable
 {
-    internal abstract class AnimationProvider : IDisposable
-    {
-        protected AnimationProvider(string path, MetaProvider meta)
-        {
-            Path = path;
-            Meta = meta;
-        }
+    public Uri Path { get; } = path;
 
-        public string Path { get; }
+    public MetaProvider Meta { get; } = meta;
 
-        public MetaProvider Meta { get; }
+    public ContextObject ContextObject { get; } = contextObject;
 
-        public Int32AnimationUsingKeyFrames Animator { get; protected set; }
+    public Int32AnimationUsingKeyFrames Animator { get; protected set; }
 
-        public abstract void Dispose();
+    public abstract void Dispose();
 
-        public abstract Task<BitmapSource> GetThumbnail(Size renderSize);
+    public abstract Task<BitmapSource> GetThumbnail(Size renderSize);
 
-        public abstract Task<BitmapSource> GetRenderedFrame(int index);
-    }
+    public abstract Task<BitmapSource> GetRenderedFrame(int index);
 }

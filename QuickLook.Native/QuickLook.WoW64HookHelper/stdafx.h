@@ -1,4 +1,4 @@
-﻿// Copyright © 2017 Paddy Xu
+﻿// Copyright © 2017-2025 QL-Win Contributors
 // 
 // This file is part of QuickLook program.
 // 
@@ -31,3 +31,4 @@
 
 
 // TODO: reference additional headers your program requires here
+#define MAX_PATH_EX 32767

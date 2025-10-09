@@ -2,6 +2,8 @@
 
 # QuickLook
 
+<a href="https://trendshift.io/repositories/3258" target="_blank"><img src="https://trendshift.io/api/badge/repositories/3258" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 [![license](https://img.shields.io/github/license/QL-Win/QuickLook.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![AppVeyor](https://img.shields.io/appveyor/ci/xupefei/QuickLook.svg)](https://ci.appveyor.com/project/xupefei/QuickLook)
 [![Github All Releases](https://img.shields.io/github/downloads/QL-Win/QuickLook/total.svg)](https://github.com/QL-Win/QuickLook/releases)
@@ -10,14 +12,14 @@
 <img src="https://user-images.githubusercontent.com/1687847/64730506-2a60d100-d4e8-11e9-95a6-f13dbd869b2a.jpeg" width="400">
 
 ## Background
-One of the few features I missed from macOS is [Quick Look](https://en.wikipedia.org/wiki/Quick_Look). It allows users to peek into a file content in lightning speed by just pressing the <kbd>Space</kbd> key. Windows, on the other hand, does not have this handy feature ... until now.
+One of the few features I missed from macOS is [Quick Look](https://en.wikipedia.org/wiki/Quick_Look). It allows users to peek into a file content in lightning speed by just pressing the <kbd>Space</kbd> key. Windows, on the other hand, does not have this handy feature ... until now!
 
-I am aware that several alternatives are already available on the Internet (e.g. [WinQuickLook](https://github.com/shibayan/WinQuickLook) and [Seer](https://github.com/ccseer/Seer)). Despite these options, I still decided to craft another one by myself, because they are either not being actively developed, lack of variety, or ask for some :dollar:.
+I am aware that several alternatives are already available on the Internet but I still decided to craft another one by myself, because they are either not being actively developed, lack of variety.
 
 ## Highlights
 
  - Tons of supported file types (full list [here](https://github.com/QL-Win/QuickLook/wiki/Supported-File-Types))
- - Fluent design (new in version 0.3)
+ - Fluent design
  - Touchscreen friendly
  - HiDPI support
  - Preview from *Open* and *Save File* Dialog
@@ -31,13 +33,14 @@ I am aware that several alternatives are already available on the Internet (e.g.
 
 Get it from one of the following sources:
 
-  * Microsoft Store (Windows 10 users only, no preview in open/save-dialogs available) <a href="https://www.microsoft.com/store/apps/9nv4bs3l1h4s?ocid=badge" target="_blank"><img src="https://assets.windowsphone.com/13484911-a6ab-4170-8b7e-795c1e8b4165/English_get_L_InvariantCulture_Default.png" height="22px" alt="Store Link" /></a> 
-  * Installer or portable archive of the stable version from [GitHub Release](https://github.com/QL-Win/QuickLook/releases) 
-  * Nightly builds from [AppVeyor](https://ci.appveyor.com/project/xupefei/quicklook/build/artifacts)
+  * Microsoft Store (Windows 10 and later only). Not supported on Windows 10 S. Not support file preview in Open-File or Save-File dialogs. <a href="https://www.microsoft.com/store/apps/9nv4bs3l1h4s?ocid=badge" target="_blank"><img src="https://developer.microsoft.com/store/badges/images/English_get_L.png" height="22px" alt="Store Link" /></a> 
+  * Installer or portable archive of the stable version from [GitHub Release](https://github.com/QL-Win/QuickLook/releases)
+  * Using [Scoop](https://scoop.sh/): `scoop bucket add extras && scoop install extras/quicklook`
+  * Nightly builds from [AppVeyor](https://ci.appveyor.com/project/xupefei/quicklook/build/artifacts) and [GitHub Action](https://github.com/QL-Win/QuickLook/releases/)
 
 [What are the differences between `.msi`, `.zip`, Nightly and Store versions?](https://github.com/QL-Win/QuickLook/wiki/Differences-Between-Distributions)
 
-**Note:** Don't forget to check out the [plugins](https://github.com/QL-Win/QuickLook/wiki/Available-Plugins) for previewing office-files, epubs, fonts and more!
+**Note:** Don't forget to check out the [plugins](https://github.com/QL-Win/QuickLook?tab=readme-ov-file#plugins) for previewing office-files, epubs, fonts and more!
 
 
 ### Typical usecase
@@ -59,7 +62,24 @@ Get it from one of the following sources:
  - <kbd>Ctrl</kbd>+<kbd>Mouse Wheel</kbd> Zoom in/out (PDFs)
  - <kbd>Wheel</kbd> Increase/decrease volume
 
-## Supported file types, file manager intergation, etc.
+## Plugins
+
+### Official Plugins
+
+| Name                                                         | Description                                                | URL                                                          |
+| ------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| [OfficeViewer](https://github.com/QL-Win/QuickLook.Plugin.OfficeViewer) | View Office formats **without installing MS Office**.      | [Link](https://github.com/QL-Win/QuickLook.Plugin.OfficeViewer/releases) |
+| [PdfViewer-Native](https://github.com/QL-Win/QuickLook.Plugin.PdfViewer-Native) | View the PDF files with WebView2.                          | [Link](https://github.com/QL-Win/QuickLook.Plugin.PdfViewer-Native/releases) |
+| [PostScriptViewer](https://github.com/QL-Win/QuickLook.Plugin.PostScriptViewer) | Preview PostScript `.ps` and `.eps` files.                 | [Link](https://github.com/QL-Win/QuickLook.Plugin.PostScriptViewer/releases) |
+| [CADImport](https://github.com/emako/QuickLook.Plugin.CADImport) | Preview CAD file formats (`.dwg`, `.dxf`, `.plt`, `.cgm`). | [Link](https://github.com/emako/QuickLook.Plugin.CADImport/releases) |
+
+Here is the complete list of plugins from [Available-Plugins](https://github.com/QL-Win/QuickLook/wiki/Available-Plugins).
+
+## Supported file formats
+
+See the [Supported formats](SUPPORTED_FORMATS.md)
+
+## Supported file manager integration, etc.
 
 See the [Wiki page](https://github.com/QL-Win/QuickLook/wiki)
 
@@ -67,10 +87,18 @@ See the [Wiki page](https://github.com/QL-Win/QuickLook/wiki)
 
 See the [Translation guide](https://github.com/QL-Win/QuickLook/wiki/Translations)
 
+## Community
+
+QQ Group: [371388501](https://qm.qq.com/q/KIczirznua)
+
+## Developer
+
+- **Formatter**: [CodeMaid.config](CodeMaid.config), [Settings.XamlStyler](Settings.XamlStyler)
+
 ## Thanks to
 
  - Many [open-source projects](https://github.com/QL-Win/QuickLook/wiki/On-the-Shoulders-of-Giants) and their contributors
- - Our UI designers [@OiCkilL](https://twitter.com/OiCkilL) (“Fluent” user interface since v0.3) and [@QubitsDev](https://twitter.com/qubitsdev) (application icon since v0.3)
+ - Our UI designers [@OiCkilL](https://twitter.com/OiCkilL) (“Fluent” user interface since v0.3), [@QubitsDev](https://twitter.com/qubitsdev) (app-icon v0.3-v3.6.9) and [Donno](https://github.com/Donnnno) (app-icon since v3.6.10)
  - [Our contributers](https://github.com/QL-Win/QuickLook/graphs/contributors) who
      - teach QuickLook to speak *your* language
      - send pull requests, report bugs or give suggestions

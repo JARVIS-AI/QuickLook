@@ -1,151 +1,239 @@
-﻿// Copyright © 2017 Paddy Xu
-// 
+﻿// Copyright © 2017-2025 QL-Win Contributors
+//
 // This file is part of QuickLook program.
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media.Animation;
 using QuickLook.Common.ExtensionMethods;
 using QuickLook.Common.Helpers;
 using QuickLook.Common.Plugin;
 using QuickLook.Helpers;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media.Animation;
+using Wpf.Ui.Violeta.Controls;
 using Brush = System.Windows.Media.Brush;
 using FontFamily = System.Windows.Media.FontFamily;
 using Size = System.Windows.Size;
 
-namespace QuickLook
+namespace QuickLook;
+
+public partial class ViewerWindow : Window
 {
-    /// <summary>
-    ///     Interaction logic for ViewerWindow.xaml
-    /// </summary>
-    public partial class ViewerWindow : Window
+    private Size _customWindowSize = Size.Empty;
+    private bool _ignoreNextWindowSizeChange;
+    private string _path = string.Empty;
+    private FileSystemWatcher _autoReloadWatcher;
+    private readonly bool _autoReload;
+
+    internal ViewerWindow()
     {
-        private Size _customWindowSize = Size.Empty;
-        private bool _ignoreNextWindowSizeChange;
-        private string _path = string.Empty;
+        // this object should be initialized before loading UI components, because many of which are binding to it.
+        ContextObject = new ContextObject() { Source = this };
 
-        internal ViewerWindow()
+        ContextObject.PropertyChanged += ContextObject_PropertyChanged;
+
+        InitializeComponent();
+
+        _autoReload = SettingHelper.Get("AutoReload", false);
+
+        Icon = (App.IsWin10 ? Properties.Resources.app_white_png : Properties.Resources.app_png).ToBitmapSource();
+
+        FontFamily = new FontFamily(TranslationHelper.Get("UI_FontFamily", failsafe: "Segoe UI"));
+
+        SizeChanged += SaveWindowSizeOnSizeChanged;
+
+        StateChanged += (_, _) => _ignoreNextWindowSizeChange = true;
+
+        windowFrameContainer.PreviewMouseMove += ShowWindowCaptionContainer;
+
+        Topmost = SettingHelper.Get("Topmost", false);
+        buttonTop.Tag = Topmost ? "Top" : "Auto";
+
+        buttonTop.Click += (_, _) =>
         {
-            // this object should be initialized before loading UI components, because many of which are binding to it.
-            ContextObject = new ContextObject();
-
-            ContextObject.PropertyChanged += ContextObject_PropertyChanged;
-
-            InitializeComponent();
-
-            Icon = (App.IsWin10 ? Properties.Resources.app_white_png : Properties.Resources.app_png).ToBitmapSource();
-
-            FontFamily = new FontFamily(TranslationHelper.Get("UI_FontFamily", failsafe: "Segoe UI"));
-
-            SizeChanged += SaveWindowSizeOnSizeChanged;
-
-            StateChanged += (sender, e) => _ignoreNextWindowSizeChange = true;
-
-            windowFrameContainer.PreviewMouseMove += ShowWindowCaptionContainer;
-            
-            Topmost = SettingHelper.Get("Topmost", false);
+            Topmost = !Topmost;
+            SettingHelper.Set("Topmost", Topmost);
             buttonTop.Tag = Topmost ? "Top" : "Auto";
+        };
 
-            buttonTop.Click += (sender, e) =>
-            {
-                Topmost = !Topmost;
-                SettingHelper.Set("Topmost", Topmost);
-                buttonTop.Tag = Topmost ? "Top" : "Auto";
-            };
-
-            buttonPin.Click += (sender, e) =>
-            {
-                if (Pinned)
-                    return;
-
-                ViewWindowManager.GetInstance().ForgetCurrentWindow();
-            };
-
-            buttonCloseWindow.Click += (sender, e) =>
-            {
-                if (Pinned)
-                    BeginClose();
-                else
-                    ViewWindowManager.GetInstance().ClosePreview();
-            };
-
-            buttonOpen.Click += (sender, e) =>
-            {
-                if (Pinned)
-                    RunAndClose();
-                else
-                    ViewWindowManager.GetInstance().RunAndClosePreview();
-            };
-
-            buttonWindowStatus.Click += (sender, e) =>
-                WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-
-            buttonShare.Click += (sender, e) => ShareHelper.Share(_path, this);
-            buttonOpenWith.Click += (sender, e) => ShareHelper.Share(_path, this, true);
-        }
-
-        public override void OnApplyTemplate()
+        buttonPin.Click += (_, _) =>
         {
-            base.OnApplyTemplate();
-
-            if (SystemParameters.IsGlassEnabled && App.IsWin10 && !App.IsGPUInBlacklist)
-                WindowHelper.EnableBlur(this);
-            else
-                Background = (Brush) FindResource("MainWindowBackgroundNoTransparent");
-        }
-
-        private void SaveWindowSizeOnSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            // first shown?
-            if (e.PreviousSize == new Size(0, 0))
-                return;
-            // resize when switching preview?
-            if (_ignoreNextWindowSizeChange)
+            if (Pinned)
             {
-                _ignoreNextWindowSizeChange = false;
+                Toast.Information(TranslationHelper.Get("InfoPanel_CantPreventClosing"));
                 return;
             }
 
-            // by user?
-            _customWindowSize = new Size(Width, Height);
-        }
+            ViewWindowManager.GetInstance().ForgetCurrentWindow();
+        };
 
-        private void ShowWindowCaptionContainer(object sender, MouseEventArgs e)
+        buttonCloseWindow.Click += (_, _) =>
         {
-            var show = (Storyboard) windowCaptionContainer.FindResource("ShowCaptionContainerStoryboard");
+            if (Pinned)
+                Close();
+            else
+                ViewWindowManager.GetInstance().ClosePreview();
+        };
 
-            if (windowCaptionContainer.Opacity == 0 || windowCaptionContainer.Opacity == 1)
-                show.Begin();
-        }
-
-        private void AutoHideCaptionContainer(object sender, EventArgs e)
+        buttonOpen.Click += (_, _) =>
         {
-            if (!ContextObject.TitlebarAutoHide)
-                return;
+            if (Pinned)
+                RunAndClose();
+            else
+                ViewWindowManager.GetInstance().RunAndClosePreview();
+        };
 
-            if (!ContextObject.TitlebarOverlap)
-                return;
+        buttonReload.Click += (_, _) =>
+        {
+            ViewWindowManager.GetInstance().ReloadPreview();
+        };
 
-            if (windowCaptionContainer.IsMouseOver)
-                return;
+        buttonWindowStatus.Click += (_, _) =>
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
-            var hide = (Storyboard) windowCaptionContainer.FindResource("HideCaptionContainerStoryboard");
+        buttonShare.Click += (_, _) => ShareHelper.Share(_path, this);
+        buttonOpenWith.Click += (_, _) => ShareHelper.Share(_path, this, true);
 
-            hide.Begin();
+        buttonReload.Visibility = SettingHelper.Get("ShowReload", false) ? Visibility.Visible : Visibility.Collapsed;
+
+        moreItemCopyAsPath.Click += (_, _) =>
+        {
+            try
+            {
+                Clipboard.SetText($"\"{(_path.Length >= 260 ? @"\\?\" + _path : _path)}\"");
+                Toast.Success(TranslationHelper.Get("InfoPanelMoreItem_CopySucc"));
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        };
+
+        moreItemOpenSettings.Click += (_, _) =>
+        {
+            Toast.Warning("Coming soon...");
+        };
+
+        // Set UI translations
+        buttonTop.ToolTip = TranslationHelper.Get("MW_StayTop");
+        buttonPin.ToolTip = TranslationHelper.Get("MW_PreventClosing");
+        buttonOpenWith.ToolTip = TranslationHelper.Get("MW_OpenWithMenu");
+        buttonShare.ToolTip = TranslationHelper.Get("MW_Share");
+        buttonReload.ToolTip = TranslationHelper.Get("MW_Reload", failsafe: "Reload");
+        buttonMore.ToolTip = TranslationHelper.Get("MW_More", failsafe: "More");
+        moreItemCopyAsPath.Header = TranslationHelper.Get("InfoPanelMoreItem_CopyAsPath");
+    }
+
+    public new void Close()
+    {
+        // Workaround to prevent DPI jump animation when closing window in .NET Framework 4.6.2
+        // Safe to remove this line if QuickLook no longer targets .NET Framework 4.6.2
+        Hide();
+
+        base.Close();
+    }
+
+    public override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        WindowHelper.RemoveWindowControls(this);
+
+        if (SettingHelper.Get("UseTransparency", true)
+            && SystemParameters.IsGlassEnabled
+            && !App.IsGPUInBlacklist)
+        {
+            if (App.IsWin11)
+            {
+                if (Environment.OSVersion.Version >= new Version(10, 0, 22523))
+                {
+                    WindowHelper.EnableBackdropMicaBlur(this, CurrentTheme == Themes.Dark);
+                }
+                else
+                {
+                    WindowHelper.EnableMicaBlur(this, CurrentTheme == Themes.Dark);
+                }
+            }
+            else if (App.IsWin10)
+            {
+                WindowHelper.EnableBlur(this);
+            }
+            else
+            {
+                Background = (Brush)FindResource("MainWindowBackgroundNoTransparent");
+            }
         }
+        else
+        {
+            Background = (Brush)FindResource("MainWindowBackgroundNoTransparent");
+        }
+
+        var customColor = SettingHelper.Get("WindowBackgroundColor", string.Empty, "QuickLook");
+        if (!string.IsNullOrEmpty(customColor))
+        {
+            try
+            {
+                Background = (Brush)new System.Windows.Media.BrushConverter().ConvertFromString(customColor);
+            }
+            catch
+            {
+                // ignore invalid color
+            }
+        }
+    }
+
+    private void SaveWindowSizeOnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // first shown?
+        if (e.PreviousSize == new Size(0, 0))
+            return;
+        // resize when switching preview?
+        if (_ignoreNextWindowSizeChange)
+        {
+            _ignoreNextWindowSizeChange = false;
+            return;
+        }
+
+        // by user?
+        _customWindowSize = new Size(Width, Height);
+    }
+
+    private void ShowWindowCaptionContainer(object sender, MouseEventArgs e)
+    {
+        var show = (Storyboard)windowCaptionContainer.FindResource("ShowCaptionContainerStoryboard");
+
+        if (windowCaptionContainer.Opacity == 0 || windowCaptionContainer.Opacity == 1)
+            show.Begin();
+    }
+
+    private void AutoHideCaptionContainer(object sender, EventArgs e)
+    {
+        if (!ContextObject.TitlebarAutoHide)
+            return;
+
+        if (!ContextObject.TitlebarOverlap)
+            return;
+
+        if (windowCaptionContainer.IsMouseOver)
+            return;
+
+        var hide = (Storyboard)windowCaptionContainer.FindResource("HideCaptionContainerStoryboard");
+
+        hide.Begin();
     }
 }

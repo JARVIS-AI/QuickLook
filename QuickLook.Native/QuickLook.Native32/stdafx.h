@@ -1,4 +1,4 @@
-﻿// Copyright © 2017 Paddy Xu
+﻿// Copyright © 2017-2025 QL-Win Contributors
 // 
 // This file is part of QuickLook program.
 // 
@@ -33,3 +33,5 @@
 #include<Shellapi.h>
 #include<Psapi.h>
 #include<AppModel.h>
+
+#define MAX_PATH_EX 32767
